@@ -1,0 +1,107 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Product {
+    id         String           @id @default(cuid())
+    name       String
+    brandId    String
+    brand      ProductBrand     @relation(fields: [brandId], references: [id])
+    categoryId String
+    category   ProductCategory  @relation(fields: [categoryId], references: [id])
+    price      Float
+    variants   ProductVariant[]
+    sizes      ProductSize[]
+    updatedAt  DateTime         @default(now()) @updatedAt
+    createdAt  DateTime         @default(now())
+}
+
+model ProductBrand {
+    id        String    @id @default(cuid())
+    name      String    @unique
+    products  Product[]
+    updatedAt DateTime  @default(now()) @updatedAt
+    createdAt DateTime  @default(now())
+}
+
+model ProductCategory {
+    id        String    @id @default(cuid())
+    name      String    @unique
+    products  Product[]
+    updatedAt DateTime  @default(now()) @updatedAt
+    createdAt DateTime  @default(now())
+}
+
+model ProductOrder {
+    id        String         @id @default(cuid())
+    userId    String
+    user      User           @relation(fields: [userId], references: [id])
+    variantId String
+    variant   ProductVariant @relation(fields: [variantId], references: [id])
+    sizeId    String
+    size      ProductSize    @relation(fields: [sizeId], references: [id])
+    quantity  Int
+    total     Float          @default(0)
+    status    OrderStatus    @default(PENDING)
+    updatedAt DateTime       @default(now()) @updatedAt
+    createdAt DateTime       @default(now())
+}
+
+model ProductSize {
+    id        String          @id @default(cuid())
+    productId String
+    product   Product         @relation(fields: [productId], references: [id])
+    name      String
+    variants  VariantOnSize[]
+    updatedAt DateTime        @default(now()) @updatedAt
+    createdAt DateTime        @default(now())
+
+    ProductOrder ProductOrder[]
+    @@unique([productId, name])
+}
+
+model VariantOnSize {
+    sizeId    String
+    size      ProductSize    @relation(fields: [sizeId], references: [id])
+    variantId String
+    variant   ProductVariant @relation(fields: [variantId], references: [id])
+    stock     Int            @default(0)
+    updatedAt DateTime       @default(now()) @updatedAt
+    createdAt DateTime       @default(now())
+
+    @@id([sizeId, variantId])
+}
+
+model ProductVariant {
+    id        String          @id @default(cuid())
+    productId String
+    product   Product         @relation(fields: [productId], references: [id])
+    name      String
+    sizes     VariantOnSize[]
+    updatedAt DateTime        @default(now()) @updatedAt
+    createdAt DateTime        @default(now())
+
+    ProductOrder ProductOrder[]
+    @@unique([productId, name])
+}
+
+model User {
+    id        String         @id @default(cuid())
+    email     String         @unique
+    firstName String
+    lastName  String
+    orders    ProductOrder[]
+    updatedAt DateTime       @default(now()) @updatedAt
+    createdAt DateTime       @default(now())
+}
+
+enum OrderStatus {
+    PENDING
+    SHIPPED
+    DELIVERED
+}
