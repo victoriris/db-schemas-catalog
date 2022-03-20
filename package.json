@@ -1,0 +1,9 @@
+{
+  "name": "db-schemas-catalog",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "prisma": "^3.11.0"
+  }
+}
